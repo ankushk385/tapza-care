@@ -19,6 +19,8 @@ export const fallbackPalette = {
   warning: "#B45309",
   danger: "#B42318",
   skeleton: "rgba(14, 31, 28, 0.07)",
+  /** Neutral base behind photos; also used to judge contrast over image bands. */
+  scrim: "#0B1211",
 } as const;
 
 /** 4pt spacing scale. Every margin/padding in the app comes from here. */

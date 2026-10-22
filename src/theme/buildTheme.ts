@@ -16,6 +16,7 @@ export interface Palette {
   onPrimary: string;
   border: string;
   overlay: string;
+  onOverlay: string;
   success: string;
   warning: string;
   danger: string;
@@ -40,7 +41,9 @@ export function buildTheme(configTheme?: ConfigTheme | null): AppTheme {
   const c = configTheme;
   const background = c?.background ?? fallbackPalette.background;
   const surface = c?.surface ?? fallbackPalette.surface;
-  const primary = c?.primary ?? fallbackPalette.primary;
+  // 3:1 is the WCAG threshold for UI components (buttons, tab indicators).
+  // A config that ships an invisible primary gets nudged to a readable one.
+  const primary = ensureContrast(c?.primary ?? fallbackPalette.primary, background, 3);
 
   const safeText = (candidate: string, fallback: string): string => {
     const onBackground = ensureContrast(candidate || fallback, background);
@@ -58,6 +61,8 @@ export function buildTheme(configTheme?: ConfigTheme | null): AppTheme {
     3.4,
   );
 
+  const overlayBase = isDark(background) ? "#000000" : textPrimary;
+
   return {
     colors: {
       primary,
@@ -70,7 +75,8 @@ export function buildTheme(configTheme?: ConfigTheme | null): AppTheme {
       textSecondary: ensureContrast(textSecondary, surface, 3.4),
       onPrimary: readableOn(primary),
       border: withAlpha(textPrimary, 0.12),
-      overlay: withAlpha(isDark(background) ? "#000000" : textPrimary, 0.55),
+      overlay: withAlpha(overlayBase, 0.62),
+      onOverlay: readableOn(overlayBase),
       success: fallbackPalette.success,
       warning: fallbackPalette.warning,
       danger: fallbackPalette.danger,

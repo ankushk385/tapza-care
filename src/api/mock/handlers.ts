@@ -113,3 +113,9 @@ export function getPrescriptions(): Prescription[] {
 export function resetMockBookings(): void {
   bookedSlots.clear();
 }
+
+/** Slot ids are `doctorId|date|index`, so a stored booking can be rendered. */
+export function slotIdToTime(slotId: string): string | null {
+  const index = Number(slotId.split("|")[2]);
+  return SLOT_TIMES[index] ?? null;
+}

@@ -1,6 +1,9 @@
-import { registerRootComponent } from 'expo';
+// Must be the first import: installs the gesture system before React Native boots.
+import "react-native-gesture-handler";
 
-import App from './App';
+import { registerRootComponent } from "expo";
+
+import App from "./App";
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

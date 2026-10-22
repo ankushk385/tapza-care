@@ -30,14 +30,34 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.3.0",
-    "typescript": "~6.0.3"
+    "puppeteer-core": "^25.16.0",
+    "typescript": "~6.0.3",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.12"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "typecheck": "tsc --noEmit",
+    "shots": "node scripts/screenshots.mjs",
+    "build:apk": "npx eas-cli build --platform android --profile preview"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/scripts/"
+    ]
+  }
 }
