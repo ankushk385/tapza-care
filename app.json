@@ -27,6 +27,12 @@
       "expo-image",
       "expo-font"
     ],
-    "scheme": "tapzacare"
+    "scheme": "tapzacare",
+    "extra": {
+      "eas": {
+        "projectId": "dc7b0107-59aa-4e34-9cac-a36ed1e58a8d"
+      }
+    },
+    "owner": "ankushk385"
   }
 }
