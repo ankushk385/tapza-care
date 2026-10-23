@@ -271,7 +271,8 @@ export const festivalConfig: LayoutConfig = {
       id: "sec-quick-festival",
       type: "quick_actions",
       title: "Quick actions",
-      background: { kind: "color", value: "#241809" },
+      // Proof that the third background kind works: photo band + derived overlay.
+      background: { kind: "image", value: IMAGES.diya },
       items: [
         { id: "qa-book", label: "Book", icon: "calendar", target: "bookings" },
         { id: "qa-rx", label: "Prescriptions", icon: "document", target: "prescriptions" },

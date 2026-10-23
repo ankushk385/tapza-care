@@ -8,7 +8,7 @@ import { StateView } from "../../../components/ui/StateView";
 import { Icon } from "../../../components/ui/Icon";
 import { useDoctors } from "../../../api/queries";
 import { formatRupees } from "../../../lib/format";
-import { maxFontScale } from "../../../theme/tokens";
+import { componentSize, maxFontScale, minTapTarget } from "../../../theme/tokens";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { doctorRefItemSchema, type HomeSection } from "../../../types/config";
 import { useBandPalette } from "../band";
@@ -52,7 +52,7 @@ export function DoctorCarousel({
               style={[
                 styles.card,
                 {
-                  width: 250,
+                  width: componentSize.doctorCardWidth,
                   backgroundColor: band.card,
                   borderColor: band.border,
                   borderRadius: theme.radius.lg,
@@ -60,7 +60,11 @@ export function DoctorCarousel({
                 },
               ]}
             >
-              <Skeleton width={52} height={52} radius={26} />
+              <Skeleton
+                width={componentSize.doctorAvatar}
+                height={componentSize.doctorAvatar}
+                radius={componentSize.doctorAvatar / 2}
+              />
               <View style={{ flex: 1, gap: 6 }}>
                 <Skeleton width="70%" height={14} />
                 <Skeleton width="50%" height={11} />
@@ -90,7 +94,7 @@ export function DoctorCarousel({
               style={[
                 styles.card,
                 {
-                  width: 250,
+                  width: componentSize.doctorCardWidth,
                   backgroundColor: band.card,
                   borderColor: band.border,
                   borderRadius: theme.radius.lg,
@@ -103,7 +107,11 @@ export function DoctorCarousel({
                 <RemoteImage
                   uri={doctor.photoUrl}
                   accessibilityLabel={doctor.name}
-                  style={{ width: 52, height: 52, borderRadius: 26 }}
+                  style={{
+                    width: componentSize.doctorAvatar,
+                    height: componentSize.doctorAvatar,
+                    borderRadius: componentSize.doctorAvatar / 2,
+                  }}
                 />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text
@@ -203,7 +211,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   bookButton: {
-    minHeight: 36,
+    minHeight: minTapTarget,
     alignItems: "center",
     justifyContent: "center",
   },

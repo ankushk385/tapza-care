@@ -21,6 +21,7 @@ export function BookingsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<TabNavigation>();
   const bookings = useAppStore((state) => state.bookings);
+  const bookingLabels = useAppStore((state) => state.bookingLabels);
   const { data: doctors } = useDoctors();
 
   return (
@@ -77,7 +78,7 @@ export function BookingsScreen() {
                       flex: 1,
                     }}
                   >
-                    {doctor?.name ?? "Clinic visit"}
+                    {bookingLabels[booking.slotId] ?? doctor?.name ?? "Clinic visit"}
                   </Text>
                   <View
                     style={[
@@ -134,7 +135,7 @@ export function BookingsScreen() {
 
                 <PressableScale
                   accessibilityRole="button"
-                  accessibilityLabel={`Book again with ${doctor?.name ?? "the clinic"}`}
+                  accessibilityLabel={`Book again with ${bookingLabels[booking.slotId] ?? doctor?.name ?? "the clinic"}`}
                   onPress={() => navigation.navigate("home")}
                   style={[
                     styles.rebook,

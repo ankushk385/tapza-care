@@ -23,11 +23,14 @@ interface AppState {
   takenDoses: Record<string, true>;
   /** Optimistically confirmed bookings, persisted so the tab survives a reload. */
   bookings: Booking[];
+  /** `slotId` -> what was booked ("Full body checkup", "Dr. Ananya Rao"), so
+   *  a service booking keeps its name in the visits list. */
+  bookingLabels: Record<string, string>;
 
   setVariant: (variant: ConfigVariant) => void;
   cacheConfig: (variant: ConfigVariant, config: LayoutConfig) => void;
   toggleDose: (key: string) => void;
-  addBooking: (booking: Booking) => void;
+  addBooking: (booking: Booking, label?: string) => void;
   clearData: () => void;
 }
 
@@ -38,6 +41,7 @@ export const useAppStore = create<AppState>()(
       configCache: {},
       takenDoses: {},
       bookings: [],
+      bookingLabels: {},
 
       setVariant: (variant) => set({ variant }),
       cacheConfig: (variant, config) =>
@@ -52,11 +56,14 @@ export const useAppStore = create<AppState>()(
           }
           return { takenDoses: next };
         }),
-      addBooking: (booking) =>
+      addBooking: (booking, label) =>
         set((state) => ({
           bookings: [booking, ...state.bookings.filter((b) => b.slotId !== booking.slotId)],
+          bookingLabels: label
+            ? { ...state.bookingLabels, [booking.slotId]: label }
+            : state.bookingLabels,
         })),
-      clearData: () => set({ takenDoses: {}, bookings: [] }),
+      clearData: () => set({ takenDoses: {}, bookings: [], bookingLabels: {} }),
     }),
     {
       name: "tapza-care-v1",
@@ -66,6 +73,7 @@ export const useAppStore = create<AppState>()(
         configCache: state.configCache,
         takenDoses: state.takenDoses,
         bookings: state.bookings,
+        bookingLabels: state.bookingLabels,
       }),
     },
   ),

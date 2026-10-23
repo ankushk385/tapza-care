@@ -5,7 +5,7 @@ import { PressableScale } from "../../../components/ui/PressableScale";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { formatRupees } from "../../../lib/format";
 import { readableOn } from "../../../lib/color";
-import { maxFontScale } from "../../../theme/tokens";
+import { componentSize, maxFontScale } from "../../../theme/tokens";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { serviceItemSchema, type HomeSection } from "../../../types/config";
 import { useBandPalette } from "../band";
@@ -51,7 +51,10 @@ export function ServiceGrid({
             style={{ width: cardWidth, gap: theme.spacing.xs }}
           >
             <View style={[styles.imageWrap, { borderRadius: theme.radius.md }]}>
-              <RemoteImage uri={item.imageUrl} style={{ width: "100%", height: 84 }} />
+              <RemoteImage
+                uri={item.imageUrl}
+                style={{ width: "100%", height: componentSize.serviceImageHeight }}
+              />
               {item.badge ? (
                 <View
                   style={[

@@ -66,4 +66,11 @@ export const durations = {
 /** Android/iOS accessibility minimum. */
 export const minTapTarget = 44;
 
+/** Recurring component measurements, so layout numbers are named, not magic. */
+export const componentSize = {
+  doctorCardWidth: 250,
+  doctorAvatar: 52,
+  serviceImageHeight: 84,
+} as const;
+
 export const maxFontScale = 1.4;

@@ -8,7 +8,7 @@ import { withAlpha } from "../../lib/color";
 import type { Latency } from "../../api/mock/settings";
 import { useMockSettings } from "../../api/mock/settings";
 import { useAppStore } from "../../store/useAppStore";
-import { maxFontScale } from "../../theme/tokens";
+import { maxFontScale, minTapTarget } from "../../theme/tokens";
 import { useTheme } from "../../theme/ThemeProvider";
 
 function Segmented<T extends string | number>({
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
-    minHeight: 40,
+    minHeight: minTapTarget,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 8,

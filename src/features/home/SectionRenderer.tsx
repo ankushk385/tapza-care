@@ -44,7 +44,7 @@ export function SectionRenderer({
   );
 }
 
-function renderSection(
+export function renderSection(
   section: HomeSection,
   scrollY: SharedValue<number>,
   actions: SectionActions,

@@ -94,7 +94,7 @@ export function BookingSheet({
     tapHaptic();
 
     booking.mutate(
-      { doctorId: target.id, slotId: selected.id, date },
+      { doctorId: target.id, slotId: selected.id, date, label: target.name },
       {
         onSuccess: () => {
           successHaptic();

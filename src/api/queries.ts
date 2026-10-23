@@ -89,6 +89,8 @@ interface BookingInput {
   doctorId: string;
   slotId: string;
   date: string;
+  /** What the user saw on the card, kept for the visits list. */
+  label?: string;
 }
 
 interface BookingContext {
@@ -128,8 +130,8 @@ export function useCreateBooking() {
       }
     },
 
-    onSuccess: (booking) => {
-      addBooking(booking);
+    onSuccess: (booking, input) => {
+      addBooking(booking, input.label);
     },
 
     onSettled: (_data, _error, input) => {
