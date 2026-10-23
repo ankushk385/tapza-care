@@ -18,9 +18,10 @@ import { RemoteImage } from "../../components/ui/RemoteImage";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { StateView } from "../../components/ui/StateView";
 import { formatDate, formatRupees, formatTime, todayISO, upcomingDays } from "../../lib/format";
+import { withAlpha } from "../../lib/color";
 import { maxFontScale } from "../../theme/tokens";
 import { useTheme } from "../../theme/ThemeProvider";
-import type { BookingTarget } from "../../store/useAppStore";
+import { useAppStore, type BookingTarget } from "../../store/useAppStore";
 import type { Slot } from "../../types/config";
 import { SuccessPanel } from "./SuccessPanel";
 
@@ -56,6 +57,8 @@ export function BookingSheet({
   const [selected, setSelected] = useState<Slot | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<{ date: string; time: string } | null>(null);
+  const [queued, setQueued] = useState<{ date: string; time: string } | null>(null);
+  const enqueueBooking = useAppStore((state) => state.enqueueBooking);
 
   const slotsQuery = useSlots(target.id, date);
   const booking = useCreateBooking();
@@ -106,7 +109,20 @@ export function BookingSheet({
             setSelected(null);
             void slotsQuery.refetch();
           } else {
-            setFailure("Couldn't confirm the booking. Check your connection and try again.");
+            // Offline (or any non-conflict failure): keep the intent and sync later.
+            enqueueBooking({
+              id: selected.id,
+              doctorId: target.id,
+              slotId: selected.id,
+              date,
+              startsAt: selected.startsAt,
+              label: target.name,
+              createdAt: Date.now(),
+            });
+            setQueued({
+              date: formatDate(`${date}T00:00:00`),
+              time: formatTime(selected.startsAt),
+            });
           }
         },
       },
@@ -185,6 +201,50 @@ export function BookingSheet({
             subtitle={`${target.name} · ${confirmed.date} at ${confirmed.time}`}
             onDone={onClose}
           />
+        ) : queued ? (
+          <View style={[styles.queuedWrap, { gap: theme.spacing.sm, padding: theme.spacing.xl }]}>
+            <View
+              style={[
+                styles.queuedDisc,
+                { backgroundColor: withAlpha(theme.colors.warning, 0.14) },
+              ]}
+            >
+              <Icon name="offline" size={30} color={theme.colors.warning} />
+            </View>
+            <Text
+              maxFontSizeMultiplier={maxFontScale}
+              style={{
+                color: theme.colors.textPrimary,
+                fontSize: theme.fontSize.subtitle,
+                fontWeight: "800",
+                textAlign: "center",
+              }}
+            >
+              Saved for later
+            </Text>
+            <Text
+              maxFontSizeMultiplier={maxFontScale}
+              style={{
+                color: theme.colors.textSecondary,
+                fontSize: theme.fontSize.body,
+                textAlign: "center",
+              }}
+            >
+              {target.name} · {queued.date} at {queued.time}
+            </Text>
+            <Text
+              maxFontSizeMultiplier={maxFontScale}
+              style={{
+                color: theme.colors.textSecondary,
+                fontSize: theme.fontSize.caption,
+                textAlign: "center",
+                marginBottom: theme.spacing.sm,
+              }}
+            >
+              You&apos;re offline. We&apos;ll confirm this automatically and add it to Visits.
+            </Text>
+            <Button label="Done" onPress={onClose} />
+          </View>
         ) : (
           <View style={{ paddingHorizontal: theme.spacing.base, gap: theme.spacing.md }}>
             <Text
@@ -430,5 +490,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     padding: 10,
+  },
+  queuedWrap: {
+    alignItems: "center",
+  },
+  queuedDisc: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

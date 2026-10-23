@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 
 import { useDoctors } from "../../api/queries";
+import { flushPendingBookings } from "../../api/offlineQueue";
 import { slotIdToTime } from "../../api/mock/handlers";
 import { Icon } from "../../components/ui/Icon";
 import { PressableScale } from "../../components/ui/PressableScale";
@@ -22,7 +23,10 @@ export function BookingsScreen() {
   const navigation = useNavigation<TabNavigation>();
   const bookings = useAppStore((state) => state.bookings);
   const bookingLabels = useAppStore((state) => state.bookingLabels);
+  const pendingBookings = useAppStore((state) => state.pendingBookings);
   const { data: doctors } = useDoctors();
+
+  const total = bookings.length + pendingBookings.length;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -36,10 +40,10 @@ export function BookingsScreen() {
       >
         <ScreenTitle
           title="Your visits"
-          subtitle={bookings.length === 0 ? "Nothing booked yet" : `${bookings.length} upcoming`}
+          subtitle={total === 0 ? "Nothing booked yet" : `${total} upcoming`}
         />
 
-        {bookings.length === 0 ? (
+        {total === 0 ? (
           <StateView
             tone="empty"
             icon="calendar"
@@ -49,7 +53,112 @@ export function BookingsScreen() {
             onAction={() => navigation.navigate("home")}
           />
         ) : (
-          bookings.map((booking) => {
+          <>
+            {pendingBookings.map((pending) => (
+              <View
+                key={`pending-${pending.id}`}
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: withAlpha(theme.colors.warning, 0.45),
+                    borderRadius: theme.radius.lg,
+                    padding: theme.spacing.base,
+                    gap: theme.spacing.sm,
+                  },
+                ]}
+              >
+                <View style={styles.row}>
+                  <Text
+                    maxFontSizeMultiplier={maxFontScale}
+                    style={{
+                      color: theme.colors.textPrimary,
+                      fontSize: theme.fontSize.subtitle,
+                      fontWeight: "700",
+                      flex: 1,
+                    }}
+                  >
+                    {pending.label}
+                  </Text>
+                  <View
+                    style={[
+                      styles.status,
+                      {
+                        backgroundColor: withAlpha(theme.colors.warning, 0.14),
+                        borderRadius: theme.radius.pill,
+                      },
+                    ]}
+                  >
+                    <Icon name="offline" size={12} color={theme.colors.warning} />
+                    <Text
+                      maxFontSizeMultiplier={maxFontScale}
+                      style={{
+                        color: theme.colors.warning,
+                        fontSize: theme.fontSize.micro,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Waiting to sync
+                    </Text>
+                  </View>
+                </View>
+
+                <Text
+                  maxFontSizeMultiplier={maxFontScale}
+                  style={{ color: theme.colors.textSecondary, fontSize: theme.fontSize.small }}
+                >
+                  Saved on this device. We&apos;ll confirm it when the clinic is reachable.
+                </Text>
+
+                <View style={[styles.metaRow, { gap: theme.spacing.base }]}>
+                  <View style={[styles.meta, { gap: theme.spacing.xs }]}>
+                    <Icon name="calendar" size={14} color={theme.colors.primary} />
+                    <Text
+                      maxFontSizeMultiplier={maxFontScale}
+                      style={{ color: theme.colors.textPrimary, fontSize: theme.fontSize.caption }}
+                    >
+                      {formatDate(`${pending.date}T00:00:00`)}
+                    </Text>
+                  </View>
+                  <View style={[styles.meta, { gap: theme.spacing.xs }]}>
+                    <Icon name="time" size={14} color={theme.colors.primary} />
+                    <Text
+                      maxFontSizeMultiplier={maxFontScale}
+                      style={{ color: theme.colors.textPrimary, fontSize: theme.fontSize.caption }}
+                    >
+                      {formatTime(pending.startsAt)}
+                    </Text>
+                  </View>
+                </View>
+
+                <PressableScale
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sync booking with ${pending.label}`}
+                  onPress={() => void flushPendingBookings()}
+                  style={[
+                    styles.rebook,
+                    {
+                      borderColor: theme.colors.border,
+                      borderRadius: theme.radius.md,
+                      marginTop: theme.spacing.xs,
+                    },
+                  ]}
+                >
+                  <Text
+                    maxFontSizeMultiplier={maxFontScale}
+                    style={{
+                      color: theme.colors.primary,
+                      fontSize: theme.fontSize.caption,
+                      fontWeight: "700",
+                    }}
+                  >
+                    Try now
+                  </Text>
+                </PressableScale>
+              </View>
+            ))}
+
+            {bookings.map((booking) => {
             const doctor = doctors?.find((entry) => entry.id === booking.doctorId);
             const datePart = booking.slotId.split("|")[1] ?? "";
             const time = slotIdToTime(booking.slotId);
@@ -159,7 +268,8 @@ export function BookingsScreen() {
                 </PressableScale>
               </View>
             );
-          })
+          })}
+          </>
         )}
       </ScrollView>
     </View>

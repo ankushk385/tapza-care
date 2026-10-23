@@ -26,12 +26,32 @@ interface AppState {
   /** `slotId` -> what was booked ("Full body checkup", "Dr. Ananya Rao"), so
    *  a service booking keeps its name in the visits list. */
   bookingLabels: Record<string, string>;
+  /** Bookings made while the mock server was unreachable; flushed when it returns. */
+  pendingBookings: PendingBooking[];
+  /** Local medicine notifications toggle. */
+  remindersEnabled: boolean;
+  /** UI language (bonus: Hindi / Telugu). */
+  language: "en" | "hi" | "te";
 
   setVariant: (variant: ConfigVariant) => void;
   cacheConfig: (variant: ConfigVariant, config: LayoutConfig) => void;
   toggleDose: (key: string) => void;
   addBooking: (booking: Booking, label?: string) => void;
+  enqueueBooking: (booking: PendingBooking) => void;
+  removePendingBooking: (id: string) => void;
+  setRemindersEnabled: (enabled: boolean) => void;
+  setLanguage: (language: "en" | "hi" | "te") => void;
   clearData: () => void;
+}
+
+export interface PendingBooking {
+  id: string;
+  doctorId: string;
+  slotId: string;
+  date: string;
+  startsAt: string;
+  label: string;
+  createdAt: number;
 }
 
 export const useAppStore = create<AppState>()(
@@ -42,6 +62,9 @@ export const useAppStore = create<AppState>()(
       takenDoses: {},
       bookings: [],
       bookingLabels: {},
+      pendingBookings: [],
+      language: "en" as const,
+      remindersEnabled: false,
 
       setVariant: (variant) => set({ variant }),
       cacheConfig: (variant, config) =>
@@ -63,7 +86,15 @@ export const useAppStore = create<AppState>()(
             ? { ...state.bookingLabels, [booking.slotId]: label }
             : state.bookingLabels,
         })),
-      clearData: () => set({ takenDoses: {}, bookings: [], bookingLabels: {} }),
+      enqueueBooking: (booking) =>
+        set((state) => ({
+          pendingBookings: [booking, ...state.pendingBookings.filter((b) => b.id !== booking.id)],
+        })),
+      removePendingBooking: (id) =>
+        set((state) => ({ pendingBookings: state.pendingBookings.filter((b) => b.id !== id) })),
+      setRemindersEnabled: (enabled) => set({ remindersEnabled: enabled }),
+      setLanguage: (language) => set({ language }),
+      clearData: () => set({ takenDoses: {}, bookings: [], bookingLabels: {}, pendingBookings: [], remindersEnabled: false }),
     }),
     {
       name: "tapza-care-v1",
@@ -74,6 +105,9 @@ export const useAppStore = create<AppState>()(
         takenDoses: state.takenDoses,
         bookings: state.bookings,
         bookingLabels: state.bookingLabels,
+        pendingBookings: state.pendingBookings,
+        remindersEnabled: state.remindersEnabled,
+        language: state.language,
       }),
     },
   ),

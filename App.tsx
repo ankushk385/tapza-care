@@ -6,15 +6,18 @@ import {
   type Theme as NavigationTheme,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import * as Notifications from "expo-notifications";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useConfig } from "./src/api/queries";
+import { flushPendingBookings } from "./src/api/offlineQueue";
 import { Icon } from "./src/components/ui/Icon";
 import { StateView } from "./src/components/ui/StateView";
 import { AppNavigator } from "./src/navigation/AppNavigator";
+import { linking } from "./src/navigation/linking";
 import { useAppStore } from "./src/store/useAppStore";
 import { ThemeProvider, useTheme } from "./src/theme/ThemeProvider";
 import type { LayoutConfig } from "./src/types/config";
@@ -28,6 +31,18 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Show reminders as a banner while the app is foregrounded too.
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export default function App() {
   return (
@@ -75,6 +90,17 @@ function AppBody({
   onRetry: () => void;
 }) {
   const theme = useTheme();
+
+  // Retry queued bookings while the app is open. The mock's "fail every
+  // request" switch is a stand-in for being offline.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (useAppStore.getState().pendingBookings.length > 0) {
+        void flushPendingBookings();
+      }
+    }, 7000);
+    return () => clearInterval(timer);
+  }, []);
 
   const navigationTheme = useMemo<NavigationTheme>(() => {
     const base = theme.colors.mode === "dark" ? DarkTheme : DefaultTheme;
@@ -124,7 +150,7 @@ function AppBody({
   return (
     <>
       <StatusBar style={theme.colors.mode === "dark" ? "light" : "dark"} />
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer theme={navigationTheme} linking={linking}>
         <AppNavigator config={config} />
       </NavigationContainer>
     </>

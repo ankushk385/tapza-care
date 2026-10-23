@@ -1,10 +1,11 @@
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { NavigatorScreenParams } from "@react-navigation/native";
 
 /** The four screens the config is allowed to point a tab at. */
 export type TabParamList = {
-  home: undefined;
+  home: { doctorId?: string } | undefined;
   bookings: undefined;
-  prescriptions: undefined;
+  prescriptions: NavigatorScreenParams<PrescriptionsStackParamList> | undefined;
   profile: undefined;
 };
 

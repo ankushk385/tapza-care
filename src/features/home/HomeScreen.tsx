@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Platform,
   RefreshControl,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import { useConfig, useDoctors } from "../../api/queries";
@@ -38,6 +38,8 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { height: viewportHeight } = useWindowDimensions();
   const navigation = useNavigation<TabNavigation>();
+  const route = useRoute();
+  const [bookingTarget, setBookingTarget] = useState<BookingTarget | null>(null);
 
   const variant = useAppStore((state) => state.variant);
   const setVariant = useAppStore((state) => state.setVariant);
@@ -52,7 +54,23 @@ export function HomeScreen() {
     },
   });
 
-  const [bookingTarget, setBookingTarget] = useState<BookingTarget | null>(null);
+  // Deep link: tapzacare://doctor/:doctorId opens the booking sheet.
+  useEffect(() => {
+    const params = route.params as { doctorId?: string } | undefined;
+    const doctorId = params?.doctorId;
+    if (!doctorId || !doctors) return;
+    if (bookingTarget?.id === doctorId) return;
+    const doctor = doctors.find((entry) => entry.id === doctorId);
+    if (!doctor) return;
+    setBookingTarget({
+      kind: "doctor",
+      id: doctor.id,
+      name: doctor.name,
+      subtitle: `${doctor.specialty} · ${doctor.clinicName}`,
+      feeInr: doctor.feeInr,
+      photoUrl: doctor.photoUrl,
+    });
+  }, [route.params, doctors, bookingTarget?.id]);
 
   const openDoctor = (doctorId: string) => {
     const doctor = doctors?.find((entry) => entry.id === doctorId);
