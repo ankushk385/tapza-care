@@ -12,6 +12,9 @@ reload or a rebuild.
 More in [`docs/screenshots`](docs/screenshots). Demo video: [`docs/demo.md`](docs/demo.md)
 (recording script + where the file goes).
 
+**APK:** [download the signed build](https://expo.dev/artifacts/eas/4I_fkkAaSlTsnRHPjH3pIQR3AKRQ_Jo3QMpBaSFDDHQ.apk)
+· **Tests:** 13 passing in 4 suites · **Type check:** clean (`tsc --noEmit`) · **expo-doctor:** 20/20
+
 ---
 
 ## Run it
@@ -31,15 +34,22 @@ Requires Node 20+. No native toolchain is needed for the web or Expo Go paths.
 
 ### APK
 
-`eas.json` contains a `preview` profile that builds an installable APK.
+Built and signed on EAS (no local Android SDK):
+
+**[Download the APK](https://expo.dev/artifacts/eas/4I_fkkAaSlTsnRHPjH3pIQR3AKRQ_Jo3QMpBaSFDDHQ.apk)** ·
+[build page](https://expo.dev/accounts/ankushk385/projects/tapza-care/builds/05dda15d-cf07-49e9-a88c-1de2cbb63ec6) ·
+versionCode 1 · built 23 Oct 2026 · internal distribution, signed with the EAS-managed keystore
+
+Open the link on an Android device, allow "install unknown apps" for the browser, and install.
+To rebuild:
 
 ```bash
-npx eas-cli login
-npm run build:apk        # npx eas-cli build --platform android --profile preview
+npx eas-cli login            # or export EXPO_TOKEN=...
+npm run build:apk            # npx eas-cli build --platform android --profile preview
 ```
 
-The first run creates the project on EAS and prints a build URL; the artifact is a signed `.apk`.
-The link goes here once built: **TODO — paste the EAS build URL**.
+`eas.json` defines the `preview` profile (`buildType: "apk"`, internal distribution). The project is
+linked as `@ankushk385/tapza-care`, so no interactive `eas init` is needed.
 
 ---
 
