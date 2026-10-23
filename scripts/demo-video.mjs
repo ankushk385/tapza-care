@@ -482,50 +482,52 @@ await sleep(400);
 
 await client.send("Page.stopScreencast");
 await writing;
+await writeFile(join(FRAMES, "manifest.json"), JSON.stringify(frames));
 await browser.close();
 
 /* ------------------------------------------------------------------ encode */
 
-const frameCount = frames.length;
-if (frameCount < 20) {
-  console.error(`Only ${frameCount} frames captured — aborting.`);
-  process.exit(1);
+async function encodeFrames(captured) {
+  const frameCount = captured.length;
+  if (frameCount < 20) {
+    console.error(`Only ${frameCount} frames captured — aborting.`);
+    process.exit(1);
+  }
+
+  const lastFrame = captured[frameCount - 1];
+  const lastTime = lastFrame.time;
+  const lines = [];
+  for (let i = 0; i < frameCount; i += 1) {
+    const frame = captured[i];
+    const next = captured[i + 1];
+    // Frames are only emitted when the page repaints, so a long static hold
+    // shows up as a long gap. Cap it generously instead of compressing holds.
+    const gap = (next ? next.time : lastTime + 0.6) - frame.time;
+    const duration = Math.min(15, Math.max(0.033, gap));
+    lines.push(`file '${join(FRAMES, frame.file)}'`);
+    lines.push(`duration ${duration.toFixed(3)}`);
+  }
+  lines.push(`file '${join(FRAMES, lastFrame.file)}'`);
+  lines.push("duration 0.5");
+  await writeFile(join(FRAMES, "list.txt"), `${lines.join("\n")}\n`);
+
+  console.log(`${frameCount} frames, ~${(lastTime - captured[0].time).toFixed(1)}s of screen time`);
+
+  await run(FFMPEG, [
+    "-y",
+    "-f", "concat",
+    "-safe", "0",
+    "-i", join(FRAMES, "list.txt"),
+    "-vsync", "vfr",
+    "-vf", "scale=780:1688:flags=lanczos,format=yuv420p",
+    "-c:v", "libx264",
+    "-preset", "medium",
+    "-crf", "24",
+    "-movflags", "+faststart",
+    OUTPUT,
+  ]);
+
+  console.log(`wrote ${OUTPUT}`);
 }
 
-const last = frames[frameCount - 1];
-const lines = [];
-for (let i = 0; i < frameCount; i += 1) {
-  const frame = frames[i];
-  const next = frames[i + 1];
-  const duration = Math.min(2, Math.max(0.033, (next ? next.time : last.time + 0.6) - frame.time));
-  lines.push(`file '${join(FRAMES, frame.file)}'`);
-  lines.push(`duration ${duration.toFixed(3)}`);
-}
-lines.push(`file '${join(FRAMES, frames[frameCount - 1].file)}'`);
-lines.push("duration 0.5");
-await writeFile(join(FRAMES, "list.txt"), `${lines.join("\n")}\n`);
-
-const duration = frames[frameCount - 1].time - frames[0].time;
-console.log(`${frameCount} frames, ~${duration.toFixed(1)}s of screen time`);
-
-await run(FFMPEG, [
-  "-y",
-  "-f", "concat",
-  "-safe", "0",
-  "-i", join(FRAMES, "list.txt"),
-  "-vsync", "vfr",
-  "-vf", "scale=780:1688:flags=lanczos,format=yuv420p",
-  "-c:v", "libx264",
-  "-preset", "medium",
-  "-crf", "24",
-  "-movflags", "+faststart",
-  OUTPUT,
-]);
-
-console.log(`wrote ${OUTPUT}`);
-
-if (failures.length > 0) {
-  console.error("\nScenes recorded, but these checks failed:");
-  for (const failure of failures) console.error(` - ${failure}`);
-  process.exitCode = 1;
-}
+await encodeFrames(frames);

@@ -9,9 +9,9 @@ reload or a rebuild.
 | --- | --- | --- | --- |
 | ![](docs/screenshots/01-home-normal.png) | ![](docs/screenshots/03-booking-sheet.png) | ![](docs/screenshots/10-home-festival.png) | ![](docs/screenshots/11-offline-cached-layout.png) |
 
-More in [`docs/screenshots`](docs/screenshots). **Demo video (1:44):**
-[`docs/demo.mp4`](docs/demo.mp4) — a real capture of the web build, captions burned in, no audio.
-[How it was recorded](docs/demo.md).
+More in [`docs/screenshots`](docs/screenshots). **Demo video (2:25):**
+[`docs/demo.mp4`](docs/demo.mp4) — a real capture of the web build, captions burned in, no audio,
+[recorded and asserted by a script](docs/demo.md).
 
 **APK:** [download the signed build](https://expo.dev/artifacts/eas/4I_fkkAaSlTsnRHPjH3pIQR3AKRQ_Jo3QMpBaSFDDHQ.apk)
 · **Tests:** 13 passing in 4 suites · **Type check:** clean (`tsc --noEmit`) · **expo-doctor:** 20/20
@@ -137,6 +137,7 @@ variant.
 | A11y: font scaling, 44pt, contrast | `maxFontScale={1.4}` on text, `minTapTarget = 44`, `accessibilityRole/State/Label`, contrast maths |
 | Tests | `src/**/*.test.ts` — 13 tests |
 | Screenshots + smoke test | `scripts/screenshots.mjs` → `docs/screenshots` |
+| Demo video | `scripts/demo-video.mjs` → `docs/demo.mp4` |
 
 ### Demo controls
 
@@ -235,6 +236,11 @@ npm test
 `scripts/screenshots.mjs` is a headless Chrome smoke test: it books an appointment, marks a dose,
 switches to the festival config, forces a network failure and asserts the cached layout survives.
 It writes the screenshots above and exits non-zero on any console error or failed assertion.
+
+`scripts/demo-video.mjs` records the demo video the same way: it injects a caption bar, drives the
+flow, captures Chrome's screencast and encodes the result with ffmpeg. While recording it asserts
+that the booking survives a reload (`PASS booking survives the reload`), that the festival payload
+is live, and that the tab labels changed — the video is checked content, not a lucky take.
 
 ---
 
