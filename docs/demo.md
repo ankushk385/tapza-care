@@ -1,24 +1,51 @@
 # Demo video
 
-The recording is the one deliverable I cannot produce here (no phone, no screen recorder on this
-machine). This file is the script so it takes one take, not five.
+**Recorded:** [`demo.mp4`](demo.mp4) — 1:44, 780×1688 (2× a 390×844 phone), H.264, 3.5 MB, no audio.
+The narration is burned in as captions, so it plays anywhere without a voice track.
 
-**Target length:** 2–3 minutes. **Format:** screen recording of the web build at a phone aspect
-ratio (390×844), or Expo Go on an Android phone if available.
+It is a real capture of the web build, not a mockup: `scripts/demo-video.mjs` drives the app in
+headless Chrome, records timestamped frames through CDP `Page.startScreencast`, and encodes them
+with ffmpeg. The script also asserts what is on screen at each step, so a broken recording fails
+instead of shipping a pretty-but-wrong video.
 
-Save it as `docs/demo.mp4` and update this file with a link if you host it elsewhere.
+## What it shows
 
-## Before recording
+1. The home screen rendered from `GET /config`: hero, chips, quick actions, service grid, doctor
+   carousel, offer strip. Scroll motion without a re-render per frame.
+2. Booking: open a doctor, pick a date and a free slot, confirm, success panel. Slots come from
+   `GET /slots`; taken slots are disabled, not hidden.
+3. The booking survives a reload — it is persisted locally, not refetched from a server.
+4. Prescriptions: per-medicine morning / afternoon / night doses, 44pt checkboxes, ticks stored
+   per day.
+5. Latency as a switch: skeletons while the 2.5 s "network" answers.
+6. Runtime config switch to the Diwali payload: colours, copy, offers — and the tab labels change
+   from Bookings/Profile to Visits/You, with no reload and no rebuild.
+7. Unknown content: the festival payload contains a `scratch_card` section this build never
+   implemented. It renders nothing and does not crash, on purpose.
+8. Failure handling: a forced 409 rolls back the optimistic booking and explains why; a total
+   network failure keeps the last good layout on screen with a cached banner.
+9. Reset back to a clean state.
+
+## Re-record it
+
+Requires the web dev server, Google Chrome, and ffmpeg.
 
 ```bash
-npx expo start --web
+npx expo start --web          # leave running on http://localhost:8081
+npm run demo:video            # node scripts/demo-video.mjs
 ```
 
-Open `http://localhost:8081`, then resize the browser to a phone shape (DevTools → toggle device →
-iPhone 12 Pro). Clear demo data first: **Profile → Reset doses and bookings**. Reload so the app
-starts from the normal config with a clean cache state.
+- ffmpeg is not a project dependency. The script uses `ffmpeg` from `PATH`, or the static binary at
+  `/private/tmp/ffmpeg-tool/node_modules/ffmpeg-static/ffmpeg` if that exists. Point it anywhere else
+  with `FFMPEG=/path/to/ffmpeg npm run demo:video`; on macOS, `brew install ffmpeg` is simplest.
+- Chrome is expected at the default macOS path; override with `CHROME=/path/to/chrome`.
+- `APP_URL` overrides the dev-server URL.
+- The script writes frames to `/private/tmp/tapza-demo-frames`, then encodes `docs/demo.mp4`.
+  It exits non-zero if any scene assertion fails, so check the output before committing.
+- Re-recording takes about two minutes of real time; the capture runs at variable frame rate
+  (frames are only emitted when the page repaints).
 
-## Script
+## Manual storyboard (if you record by hand)
 
 | Time | Do | Say (or caption) |
 | --- | --- | --- |

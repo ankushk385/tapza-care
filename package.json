@@ -45,6 +45,7 @@
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "shots": "node scripts/screenshots.mjs",
+    "demo:video": "node scripts/demo-video.mjs",
     "build:apk": "npx eas-cli build --platform android --profile preview"
   },
   "private": true,

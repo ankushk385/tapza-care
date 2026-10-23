@@ -9,8 +9,9 @@ reload or a rebuild.
 | --- | --- | --- | --- |
 | ![](docs/screenshots/01-home-normal.png) | ![](docs/screenshots/03-booking-sheet.png) | ![](docs/screenshots/10-home-festival.png) | ![](docs/screenshots/11-offline-cached-layout.png) |
 
-More in [`docs/screenshots`](docs/screenshots). Demo video: [`docs/demo.md`](docs/demo.md)
-(recording script + where the file goes).
+More in [`docs/screenshots`](docs/screenshots). **Demo video (1:44):**
+[`docs/demo.mp4`](docs/demo.mp4) — a real capture of the web build, captions burned in, no audio.
+[How it was recorded](docs/demo.md).
 
 **APK:** [download the signed build](https://expo.dev/artifacts/eas/4I_fkkAaSlTsnRHPjH3pIQR3AKRQ_Jo3QMpBaSFDDHQ.apk)
 · **Tests:** 13 passing in 4 suites · **Type check:** clean (`tsc --noEmit`) · **expo-doctor:** 20/20
@@ -29,6 +30,7 @@ npx expo start        # press w for web, or scan the QR with Expo Go
 - Type check: `npm run typecheck`
 - Tests: `npm test` (13 tests, 4 suites)
 - Screenshots + smoke test: `npm run shots` while the web dev server is running
+- Re-record the demo video: `npm run demo:video` (web server running, ffmpeg available)
 
 Requires Node 20+. No native toolchain is needed for the web or Expo Go paths.
 
