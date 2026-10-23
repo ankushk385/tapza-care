@@ -32,9 +32,12 @@ interface AppState {
   remindersEnabled: boolean;
   /** UI language (bonus: Hindi / Telugu). */
   language: "en" | "hi" | "te";
+  /** Admin override: when set, it replaces the fetched config live. */
+  configOverride: LayoutConfig | null;
 
   setVariant: (variant: ConfigVariant) => void;
   cacheConfig: (variant: ConfigVariant, config: LayoutConfig) => void;
+  setConfigOverride: (config: LayoutConfig | null) => void;
   toggleDose: (key: string) => void;
   addBooking: (booking: Booking, label?: string) => void;
   enqueueBooking: (booking: PendingBooking) => void;
@@ -65,6 +68,7 @@ export const useAppStore = create<AppState>()(
       pendingBookings: [],
       language: "en" as const,
       remindersEnabled: false,
+      configOverride: null as LayoutConfig | null,
 
       setVariant: (variant) => set({ variant }),
       cacheConfig: (variant, config) =>
@@ -94,7 +98,8 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ pendingBookings: state.pendingBookings.filter((b) => b.id !== id) })),
       setRemindersEnabled: (enabled) => set({ remindersEnabled: enabled }),
       setLanguage: (language) => set({ language }),
-      clearData: () => set({ takenDoses: {}, bookings: [], bookingLabels: {}, pendingBookings: [], remindersEnabled: false }),
+      setConfigOverride: (configOverride) => set({ configOverride }),
+      clearData: () => set({ takenDoses: {}, bookings: [], bookingLabels: {}, pendingBookings: [], remindersEnabled: false, configOverride: null }),
     }),
     {
       name: "tapza-care-v1",
@@ -108,6 +113,7 @@ export const useAppStore = create<AppState>()(
         pendingBookings: state.pendingBookings,
         remindersEnabled: state.remindersEnabled,
         language: state.language,
+        configOverride: state.configOverride,
       }),
     },
   ),

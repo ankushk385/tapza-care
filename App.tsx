@@ -7,12 +7,14 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
+import { AppState } from "react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { useConfig } from "./src/api/queries";
+import { useConfig, usePrescriptions } from "./src/api/queries";
+import { syncDoseReminders } from "./src/lib/reminders";
 import { flushPendingBookings } from "./src/api/offlineQueue";
 import { Icon } from "./src/components/ui/Icon";
 import { StateView } from "./src/components/ui/StateView";
@@ -64,6 +66,7 @@ export default function App() {
  */
 function ConfigGate() {
   const variant = useAppStore((state) => state.variant);
+  const configOverride = useAppStore((state) => state.configOverride);
   const { config, isLoading, refetch } = useConfig(variant);
   const [lastConfig, setLastConfig] = useState<LayoutConfig | null>(null);
 
@@ -71,7 +74,7 @@ function ConfigGate() {
     if (config) setLastConfig(config);
   }, [config]);
 
-  const effective = config ?? lastConfig;
+  const effective = configOverride ?? config ?? lastConfig;
 
   return (
     <ThemeProvider configTheme={effective?.theme}>
@@ -90,16 +93,31 @@ function AppBody({
   onRetry: () => void;
 }) {
   const theme = useTheme();
+  const remindersEnabled = useAppStore((state) => state.remindersEnabled);
+  const { data: prescriptions } = usePrescriptions();
+
+  useEffect(() => {
+    if (remindersEnabled && prescriptions) {
+      void syncDoseReminders(prescriptions, true);
+    }
+  }, [remindersEnabled, prescriptions]);
 
   // Retry queued bookings while the app is open. The mock's "fail every
   // request" switch is a stand-in for being offline.
   useEffect(() => {
+    void flushPendingBookings();
     const timer = setInterval(() => {
       if (useAppStore.getState().pendingBookings.length > 0) {
         void flushPendingBookings();
       }
     }, 7000);
-    return () => clearInterval(timer);
+    const sub = AppState.addEventListener("change", (state: string) => {
+      if (state === "active") void flushPendingBookings();
+    });
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
   }, []);
 
   const navigationTheme = useMemo<NavigationTheme>(() => {
